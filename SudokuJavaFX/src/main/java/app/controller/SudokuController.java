@@ -81,8 +81,8 @@ public class SudokuController   {
 	 */
 	private void SetUndoRedo() {
 		if (this.game != null) {
-			btnUndo.setDisable(!this.game.getSudoku().bUndo());
-			btnRedo.setDisable(!this.game.getSudoku().bRedo());
+			//TODO: Set btnUndo.setDisable(bool) based on whether or not there's something to undo
+			//TODO: Set btnRedo.setDisable(bool) based on whether or not there's something to undo			
 		}
 	}
 
@@ -149,8 +149,11 @@ public class SudokuController   {
 	
 	@FXML
 	private void btnUndo_Click(ActionEvent event) {
-		Cell c = this.game.getSudoku().Undo();
-		c.setiCellValue(0);
+		Cell c = null;
+		//TODO: Undo the last move
+
+		c.setiCellValue(0);		
+		//	You'll have to 'PaintCell' based on the Cell returned in the mathod above
 		PaintCell(c);
 	}
 	
@@ -162,7 +165,8 @@ public class SudokuController   {
 	 */
 	@FXML
 	private void btnRedo_Click(ActionEvent event) {
-		Cell c = this.game.getSudoku().Redo();
+		Cell c = null;
+		//TODO: Redo the last Undo move
 		PaintCell(c);
 	}	
 	
@@ -405,11 +409,7 @@ public class SudokuController   {
 							if (s.isValidValue(CellTo.getiRow(), CellTo.getiCol(), CellFrom.getiCellValue()))
 							{
 								event.acceptTransferModes(TransferMode.COPY_OR_MOVE);	
-							}
-							
-							// if (paneTarget.getCell().getiCellValue() == 0) {
-							
-							// }
+							}							
 						}
 						event.consume();
 					}
@@ -441,13 +441,6 @@ public class SudokuController   {
 					public void handle(DragEvent event) {
 						SudokuStyler.RemoveGridStyling(gridPaneSudoku);
 						ClearErrors();
-
-//						ObservableList<Node> childs = paneTarget.getChildren();
-//						for (Object o : childs) {
-//							if (o instanceof Pane)
-//								paneTarget.getChildren().remove(o);
-//						}
-
 						event.consume();
 					}
 				});
