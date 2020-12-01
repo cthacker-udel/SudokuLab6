@@ -9,12 +9,14 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<BorderPane stylesheets="@GameTheme2.css" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.controller.SudokuController">
+<BorderPane stylesheets="@GameTheme2.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.controller.SudokuController">
    <bottom>
-      <HBox alignment="CENTER" prefHeight="82.0" prefWidth="306.0" BorderPane.alignment="CENTER">
+      <HBox alignment="CENTER" prefHeight="82.0" prefWidth="306.0" spacing="10.0" BorderPane.alignment="CENTER">
          <children>
             <Button mnemonicParsing="false" onAction="#btnStartGame" text="Start Game" />
             <Button mnemonicParsing="false" text="End Game" />
+            <Button fx:id="btnUndo" disable="true" mnemonicParsing="false" onAction="#btnUndo_Click" text="Undo" />
+            <Button fx:id="btnRedo" disable="true" mnemonicParsing="false" onAction="#btnRedo_Click" text="Redo" />
          </children></HBox>
    </bottom>
    <top>

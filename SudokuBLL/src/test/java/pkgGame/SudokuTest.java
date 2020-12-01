@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import pkgEnum.eGameDifficulty;
+
 public class SudokuTest {
 
  	private void PrintStars() {
@@ -15,11 +17,47 @@ public class SudokuTest {
 		System.out.println();
 	}
 
+//	@Test
+//	public void Sudoku_Test_Remove_Easy() {
+//
+//		try {
+//			Sudoku s1 = new Sudoku(9,eGameDifficulty.EASY);
+//			assertEquals(9,s1.CountZero());
+//			
+//		} catch (Exception e) {
+//			fail("Test failed to build a Sudoku");
+//		}
+//	}
+//	
+//	@Test
+//	public void Sudoku_Test_Remove_Medium() {
+//
+//		try {
+//			Sudoku s1 = new Sudoku(9,eGameDifficulty.MEDIUM);
+//			assertEquals(21,s1.CountZero());
+//			
+//		} catch (Exception e) {
+//			fail("Test failed to build a Sudoku");
+//		}
+//	}
+//
+//	@Test
+//	public void Sudoku_Test_Remove_Hard() {
+//
+//		try {
+//			Sudoku s1 = new Sudoku(9,eGameDifficulty.HARD);
+//			assertEquals(41,s1.CountZero());
+//			
+//		} catch (Exception e) {
+//			fail("Test failed to build a Sudoku");
+//		}
+//	}
+	
 	@Test
 	public void Sudoku_Test1() {
 
 		try {
-			Sudoku s1 = new Sudoku(9);
+			Sudoku s1 = SudokuPrivateMethodsTest.CreateSudokuWithSize(9);
 		} catch (Exception e) {
 			fail("Test failed to build a Sudoku");
 		}
@@ -30,7 +68,8 @@ public class SudokuTest {
 	public void Sudoku_Test2() {
 	 
 	  Assertions.assertThrows(Exception.class, () -> {
-		  Sudoku s1 = new Sudoku(10);
+
+			Sudoku s1 = SudokuPrivateMethodsTest.CreateSudokuWithSize(10);
 	  });
 	 
 	}
@@ -129,7 +168,7 @@ public class SudokuTest {
 	public void Sudoku_FullPuzzle_1()
 	{
 		try {
-			Sudoku s1 = new Sudoku(9);
+			Sudoku s1 = SudokuPrivateMethodsTest.CreateSudokuWithSize(9);
 			s1.PrintPuzzle();
 			assertTrue(s1.isSudoku());
 

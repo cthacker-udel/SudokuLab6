@@ -13,6 +13,12 @@ public class Cell implements Serializable {
 		this.iRow = iRow;
 		this.iCol = iCol;
 	}
+	
+	public Cell(int iRow, int iCol, int iValue) {
+		this(iRow, iCol);
+		this.iCellValue= iValue;
+	}
+
 
 	public int getiRow() {
 		return iRow;

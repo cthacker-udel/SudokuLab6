@@ -319,6 +319,19 @@ public class LatinSquare {
 		return isLatinSquare;
 	}
 
+	public int CountZero() {
+		int iCnt = 0;
+		
+		for (int i = 0; i < LatinSquare.length; i++) {
+			for (int j = 0; j < LatinSquare.length; j++) {
+				if (LatinSquare[i][j] == 0) {
+					iCnt++;
+				}
+			}
+		}
+		return iCnt;
+	}
+	
 	/**
 	 * ContainsZero - return 'true' if any element in the LatinSquare is a zero
 	 * 
@@ -327,16 +340,12 @@ public class LatinSquare {
 	 * @return - returns 'true' if any element in the LatinSquare is a zero
 	 */
 	public boolean ContainsZero() {
-		for (int i = 0; i < LatinSquare.length; i++) {
-			for (int j = 0; j < LatinSquare.length; j++) {
-				if (LatinSquare[i][j] == 0) {
-					return true;
-				}
-			}
-		}
-		return false;
+		
+		return this.CountZero() > 0;
 
 	}
+	
+	
 
 	/**
 	 * getPV - Return the collection of PuzzleViolations
@@ -345,7 +354,7 @@ public class LatinSquare {
 	 * @since Lab #2A
 	 * @return
 	 */
-	protected ArrayList<PuzzleViolation> getPV() {
+	public ArrayList<PuzzleViolation> getPV() {
 		return PV;
 	}
 

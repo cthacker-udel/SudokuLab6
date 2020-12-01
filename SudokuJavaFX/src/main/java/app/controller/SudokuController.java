@@ -1,14 +1,17 @@
 package app.controller;
 
-
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
+import java.util.Stack;
 
 import app.Game;
 import app.helper.SudokuCell;
 import app.helper.SudokuStyler;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.RotateTransition;
+import javafx.animation.ScaleTransition;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -18,10 +21,8 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -30,25 +31,19 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import pkgEnum.eGameDifficulty;
 import pkgEnum.ePuzzleViolation;
 import pkgGame.Cell;
 import pkgGame.Sudoku;
 import pkgHelper.PuzzleViolation;
 
-public class SudokuController implements Initializable {
+public class SudokuController   {
 
 	private Game game;
 
@@ -61,6 +56,12 @@ public class SudokuController implements Initializable {
 	@FXML
 	private HBox hboxNumbers;
 
+	@FXML
+	private Button btnUndo;
+
+	@FXML
+	private Button btnRedo;
+
 	private int iCellSize = 45;
 	private static final DataFormat myFormat = new DataFormat("com.cisc181.Data.Cell");
 
@@ -71,9 +72,131 @@ public class SudokuController implements Initializable {
 		this.game = game;
 	}
 
-	@Override
-	public void initialize(URL location, ResourceBundle resources) {
+	/**
+	 * SetUndoRedo - Figure out how to set the button states.  If there's nothing
+	 * to Undo, make sure btnUndo is disabled.  If there's nothing to Redo, make
+	 * sure btnRedo is disabled.
+	 * @version 1.6
+	 * @since Lab #6  
+	 */
+	private void SetUndoRedo() {
+		if (this.game != null) {
+			btnUndo.setDisable(!this.game.getSudoku().bUndo());
+			btnRedo.setDisable(!this.game.getSudoku().bRedo());
+		}
+	}
 
+	/**
+	 * PaintCell - Paint the cell in the puzzle using data from the incoming Cell instance
+	 * 
+	 * @version 1.6
+	 * @since Lab #6 
+	 * @param c - use the row and column to figure out which cell to paint, use the
+	 * value to see what value to set
+	 */
+	private void PaintCell(Cell c) {
+		ImageView ivFind = null;
+
+		GridPane gp = (GridPane) hboxGrid.getChildren().get(0);
+		ObservableList<Node> childs = gp.getChildren();
+
+		int iCurrentCellValue = this.game.getSudoku().getPuzzle()[c.getiRow()][c.getiCol()];
+
+		for (Object o : childs) {
+			if (o instanceof SudokuCell) {
+				SudokuCell SC = (SudokuCell) o;
+
+				if ((SC.getCell().getiRow() == c.getiRow()) && (SC.getCell().getiCol() == c.getiCol()))
+				{
+					SC.getCell().setiCellValue(iCurrentCellValue);
+					for (Object o2 : SC.getChildren()) {
+						if (o2 instanceof ImageView) {
+							ivFind = (ImageView) o2;
+						}
+					}
+					if (ivFind != null) {
+						final ImageView  ivRemove = ivFind;
+					
+						ParallelTransition pt =  CreateUndoRedoTransition(ivFind,true);
+						pt.setOnFinished(new EventHandler<ActionEvent>() {
+					        @Override
+					        public void handle(ActionEvent event) {
+					        	SC.getChildren().remove(ivRemove);
+					        }
+					    });
+						pt.play();
+					}
+
+					if (iCurrentCellValue > 0) {
+						final ImageView iv = new ImageView(GetImage(iCurrentCellValue));
+						SC.getChildren().add(iv);	
+						
+						ParallelTransition pt =  CreateUndoRedoTransition(iv,false);
+						pt.play();
+					}
+				}
+			}
+		}
+		SetUndoRedo();
+	}
+
+	/**
+	 * btnRedo_Click - Handle the 'Undo' action
+	 * @version 1.6
+	 * @since Lab #6 
+	 * @param event
+	 */	
+	
+	@FXML
+	private void btnUndo_Click(ActionEvent event) {
+		Cell c = this.game.getSudoku().Undo();
+		c.setiCellValue(0);
+		PaintCell(c);
+	}
+	
+	/**
+	 * btnRedo_Click - Handle the 'Redo' action
+	 * @version 1.6
+	 * @since Lab #6 
+	 * @param event
+	 */
+	@FXML
+	private void btnRedo_Click(ActionEvent event) {
+		Cell c = this.game.getSudoku().Redo();
+		PaintCell(c);
+	}	
+	
+	
+	/**
+	 * CreateUndoRedoTransition - This method will craft a parallel transition
+	 * 	based on given ImageView and whether or not it's fading in or out. 
+	 * 
+	 * @version 1.6
+	 * @since Lab #6
+	 * @param iv
+	 * @param bFade
+	 * @return
+	 */
+	private ParallelTransition CreateUndoRedoTransition(ImageView iv, boolean bFade)
+	{
+	    ParallelTransition pt = new ParallelTransition();	    
+		ScaleTransition st = new ScaleTransition(Duration.millis(1000), iv);
+		st.setFromX(bFade ?  1f: .01f);
+		st.setFromY(bFade ? 1f : .01f);
+		st.setToX(bFade ? .01f : 1f);
+		st.setToY(bFade ? .01f : 1f);
+
+		
+		RotateTransition rt = new RotateTransition(Duration.millis(250), iv);
+		rt.setByAngle(360f);
+		rt.setCycleCount(4);
+		
+	    FadeTransition ft = new FadeTransition(Duration.millis(1000), iv);	    
+	    ft.setFromValue(bFade ? 1.0: 0.0);
+	    ft.setToValue(bFade ? 0.0: 1.0);
+	    
+		pt.getChildren().addAll(st, rt, ft);			   
+	    return pt;
 	}
 
 	/**
@@ -87,10 +210,12 @@ public class SudokuController implements Initializable {
 	private void btnStartGame(ActionEvent event) {
 		CreateSudokuInstance();
 		BuildGrids();
+		SetUndoRedo();
 	}
 
 	/**
-	 * CreateSudokuInstance - Create an instance of Sudoku, set the attribute in the 'Game' class
+	 * CreateSudokuInstance - Create an instance of Sudoku, set the attribute in the
+	 * 'Game' class
 	 * 
 	 * @version 1.5
 	 * @since Lab #5
@@ -131,7 +256,8 @@ public class SudokuController implements Initializable {
 	}
 
 	/**
-	 * BuildTopGrid - This is the grid at the top of the scene.  I'd stash 'difficulty', {@link #btnStartGame(ActionEvent)}of mistakes, etc
+	 * BuildTopGrid - This is the grid at the top of the scene. I'd stash
+	 * 'difficulty', {@link #btnStartGame(ActionEvent)}of mistakes, etc
 	 * 
 	 * @version 1.5
 	 * @since Lab #5
@@ -155,8 +281,9 @@ public class SudokuController implements Initializable {
 	}
 
 	/**
-	 * BuildNumbersGrid - This is the 'numbers' grid... a grid of the avaiable numbers based on the
-	 * flavor of the game.  If you're playing 4x4, you'll get numbers 1, 2, 3, 4.
+	 * BuildNumbersGrid - This is the 'numbers' grid... a grid of the avaiable
+	 * numbers based on the flavor of the game. If you're playing 4x4, you'll get
+	 * numbers 1, 2, 3, 4.
 	 * 
 	 * @version 1.5
 	 * @since Lab #5
@@ -186,10 +313,12 @@ public class SudokuController implements Initializable {
 
 			// This is going to fire if the number from the number grid is dragged
 			// Find the cell in the pane, put it on the Dragboard
-			
-			//	Pay close attention... this is the method you must code to make your item draggable.
-			//	If you want a paneTarget draggable (so you can drag it into the trash), you'll have to 
-			//	implement a simliar method
+
+			// Pay close attention... this is the method you must code to make your item
+			// draggable.
+			// If you want a paneTarget draggable (so you can drag it into the trash),
+			// you'll have to
+			// implement a simliar method
 			paneSource.setOnDragDetected(new EventHandler<MouseEvent>() {
 				public void handle(MouseEvent event) {
 
@@ -212,21 +341,22 @@ public class SudokuController implements Initializable {
 	}
 
 	/**
-	 * BuildSudokuGrid - This is the main Sudoku grid.  It cheats and uses SudokuStyler class to figure out the border
-	 *	widths.  There are also methods implemented for drag/drop.
+	 * BuildSudokuGrid - This is the main Sudoku grid. It cheats and uses
+	 * SudokuStyler class to figure out the border widths. There are also methods
+	 * implemented for drag/drop.
 	 *
-	 *	Example:
-	 *	paneTarget.setOnMouseClicked - fires if the user clicks a paneTarget cell
-	 *	paneTarget.setOnDragOver - fires if the user drags over a paneTarget cell
-	 *	paneTarget.setOnDragEntered - fires as the user enters the draggable cell
-	 *	paneTarget.setOnDragExited - fires as the user exits the draggable cell
-	 *	paneTarget.setOnDragDropped - fires after the user drops a draggable item onto the paneTarget
+	 * Example: paneTarget.setOnMouseClicked - fires if the user clicks a paneTarget
+	 * cell paneTarget.setOnDragOver - fires if the user drags over a paneTarget
+	 * cell paneTarget.setOnDragEntered - fires as the user enters the draggable
+	 * cell paneTarget.setOnDragExited - fires as the user exits the draggable cell
+	 * paneTarget.setOnDragDropped - fires after the user drops a draggable item
+	 * onto the paneTarget
 	 * 
 	 * @version 1.5
 	 * @since Lab #5
 	 * @param event
 	 */
-	
+
 	private GridPane BuildSudokuGrid() {
 
 		Sudoku s = this.game.getSudoku();
@@ -268,9 +398,18 @@ public class SudokuController implements Initializable {
 					public void handle(DragEvent event) {
 						if (event.getGestureSource() != paneTarget && event.getDragboard().hasContent(myFormat)) {
 							// Don't let the user drag over items that already have a cell value set
-							if (paneTarget.getCell().getiCellValue() == 0) {
-								event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+							Dragboard db = event.getDragboard();
+							Cell CellFrom = (Cell) db.getContent(myFormat);
+							Cell CellTo = (Cell) paneTarget.getCell();
+							
+							if (s.isValidValue(CellTo.getiRow(), CellTo.getiCol(), CellFrom.getiCellValue()))
+							{
+								event.acceptTransferModes(TransferMode.COPY_OR_MOVE);	
 							}
+							
+							// if (paneTarget.getCell().getiCellValue() == 0) {
+							
+							// }
 						}
 						event.consume();
 					}
@@ -287,7 +426,9 @@ public class SudokuController implements Initializable {
 							if (CellTo.getiCellValue() == 0) {
 								if (!s.isValidValue(CellTo.getiRow(), CellTo.getiCol(), CellFrom.getiCellValue())) {
 									if (game.getShowHints()) {
-										paneTarget.getChildren().add(0, SudokuStyler.getRedPane());
+										ShowErrors(CellFrom, CellTo);
+
+										//paneTarget.getChildren().add(0, SudokuStyler.getRedPane());
 									}
 								}
 							}
@@ -299,11 +440,14 @@ public class SudokuController implements Initializable {
 				paneTarget.setOnDragExited(new EventHandler<DragEvent>() {
 					public void handle(DragEvent event) {
 						SudokuStyler.RemoveGridStyling(gridPaneSudoku);
-						ObservableList<Node> childs = paneTarget.getChildren();
-						for (Object o : childs) {
-							if (o instanceof Pane)
-								paneTarget.getChildren().remove(o);
-						}
+						ClearErrors();
+
+//						ObservableList<Node> childs = paneTarget.getChildren();
+//						for (Object o : childs) {
+//							if (o instanceof Pane)
+//								paneTarget.getChildren().remove(o);
+//						}
+
 						event.consume();
 					}
 				});
@@ -314,27 +458,33 @@ public class SudokuController implements Initializable {
 						boolean success = false;
 						Cell CellTo = (Cell) paneTarget.getCell();
 
-						//TODO: This is where you'll find mistakes.  
-						//		Keep track of mistakes... as an attribute of Sudoku... start the attribute
-						//		at zero, and expose a AddMistake(int) method in Sudoku to add the mistake
-						//		write a getter so you can the value
-						//		Might even have a max mistake attribute in eGameDifficulty (easy has 2 mistakes, medium 4, etc)
-						//		If the number of mistakes >= max mistakes, end the game
+						// TODO: This is where you'll find mistakes.
+						// Keep track of mistakes... as an attribute of Sudoku... start the attribute
+						// at zero, and expose a AddMistake(int) method in Sudoku to add the mistake
+						// write a getter so you can the value
+						// Might even have a max mistake attribute in eGameDifficulty (easy has 2
+						// mistakes, medium 4, etc)
+						// If the number of mistakes >= max mistakes, end the game
 						if (db.hasContent(myFormat)) {
 							Cell CellFrom = (Cell) db.getContent(myFormat);
 
+							s.MakeMove(CellTo);
+							SetUndoRedo();
 							if (!s.isValidValue(CellTo.getiRow(), CellTo.getiCol(), CellFrom.getiCellValue())) {
 								if (game.getShowHints()) {
 									// If you're here, there's a mistake
 								}
 							}
 
-							//	This is the code that is actually taking the cell value from the drag-from 
-							//	cell and dropping a new Image into the dragged-to cell
+							// This is the code that is actually taking the cell value from the drag-from
+							// cell and dropping a new Image into the dragged-to cell
 							ImageView iv = new ImageView(GetImage(CellFrom.getiCellValue()));
 							paneTarget.getCell().setiCellValue(CellFrom.getiCellValue());
 							paneTarget.getChildren().clear();
 							paneTarget.getChildren().add(iv);
+
+							game.getSudoku().getPuzzle()[CellTo.getiRow()][CellTo.getiCol()] = CellFrom.getiCellValue();
+
 							System.out.println(CellFrom.getiCellValue());
 							success = true;
 						}
@@ -349,8 +499,80 @@ public class SudokuController implements Initializable {
 		return gridPaneSudoku;
 	}
 
+	private void ClearErrors() {
+
+		GridPane gp = (GridPane) hboxGrid.getChildren().get(0);
+		ObservableList<Node> childs = gp.getChildren();
+		Stack<Pane> stkPanes = new Stack<Pane>();
+		
+		for (Object o : childs) {
+
+			if (o instanceof SudokuCell) {
+				SudokuCell SC = (SudokuCell) o;
+				ObservableList<Node> panes = SC.getChildren();
+				Pane p = null;
+				for (Object o2 : panes) {
+					if (o2 instanceof Pane)
+						p = (Pane) o2;
+					stkPanes.push(p);
+				}
+				for (int i = 0; i < stkPanes.size(); i++) {
+					SC.getChildren().remove(stkPanes.pop());
+				}
+			}
+		}
+
+	}
+
+	private void ShowErrors(Cell CellFrom, Cell CellTo) {
+
+		ClearErrors();
+
+		ImageView ivFind = null;
+		GridPane gp = (GridPane) hboxGrid.getChildren().get(0);
+		ObservableList<Node> childs = gp.getChildren();
+
+		this.game.getSudoku().getPuzzle()[CellTo.getiRow()][CellTo.getiCol()] = CellFrom.getiCellValue();
+
+		this.game.getSudoku().isPartialSudoku();
+
+		ArrayList<PuzzleViolation> PVs = this.game.getSudoku().getPV();
+
+		for (PuzzleViolation pv : PVs) {
+			for (Object o : childs) {
+				if (o instanceof SudokuCell) {
+					SudokuCell SC = (SudokuCell) o;
+					boolean bHasPane = false;
+					for (Object panes : SC.getChildren()) {
+						if (panes instanceof Pane) {
+							bHasPane = true;
+						}
+					}
+
+					if ((pv.getePuzzleViolation() == ePuzzleViolation.DupCol)
+							&& (pv.getiValue() == SC.getCell().getiCol()) && (!bHasPane)) {
+						bHasPane = true;
+						SC.getChildren().add(0, SudokuStyler.getRedPane());
+					}
+					if ((pv.getePuzzleViolation() == ePuzzleViolation.DupRow)
+							&& (pv.getiValue() == SC.getCell().getiRow()) && (!bHasPane)) {
+						bHasPane = true;
+						SC.getChildren().add(0, SudokuStyler.getRedPane());
+					}
+					if ((pv.getePuzzleViolation() == ePuzzleViolation.DupRegion) && (pv.getiValue() == this.game
+							.getSudoku().getRegionNbr(SC.getCell().getiCol(), SC.getCell().getiRow())) && (!bHasPane)) {
+						bHasPane = true;
+						SC.getChildren().add(0, SudokuStyler.getRedPane());
+					}
+				}
+			}
+		}
+
+		this.game.getSudoku().getPuzzle()[CellTo.getiRow()][CellTo.getiCol()] = 0;
+	}
+
 	private Image GetImage(int iValue) {
-		Image img= new Image(getClass().getResource("/img/" + iValue + ".png").toString());		
+		Image img = new Image(getClass().getResource("/img/" + iValue + ".png").toString());
 		return img;
 	}
 }
