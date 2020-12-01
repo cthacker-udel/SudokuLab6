@@ -81,6 +81,10 @@ public class SudokuController   {
 	 */
 	private void SetUndoRedo() {
 		if (this.game != null) {
+			
+			btnUndo.setDisable(true);
+			
+			
 			//TODO: Set btnUndo.setDisable(bool) based on whether or not there's something to undo
 			//TODO: Set btnRedo.setDisable(bool) based on whether or not there's something to undo			
 		}
@@ -406,10 +410,10 @@ public class SudokuController   {
 							Cell CellFrom = (Cell) db.getContent(myFormat);
 							Cell CellTo = (Cell) paneTarget.getCell();
 							
-							if (s.isValidValue(CellTo.getiRow(), CellTo.getiCol(), CellFrom.getiCellValue()))
-							{
+							//if (s.isValidValue(CellTo.getiRow(), CellTo.getiCol(), CellFrom.getiCellValue()))
+							//{
 								event.acceptTransferModes(TransferMode.COPY_OR_MOVE);	
-							}							
+							//}							
 						}
 						event.consume();
 					}
