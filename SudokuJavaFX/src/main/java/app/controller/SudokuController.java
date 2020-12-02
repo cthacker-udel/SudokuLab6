@@ -83,7 +83,7 @@ public class SudokuController   {
 		if (this.game != null) {
 			
 			btnUndo.setDisable(true);
-			
+			btnRedo.setDisable(!this.game.getSudoku().bRedo());
 			
 			//TODO: Set btnUndo.setDisable(bool) based on whether or not there's something to undo
 			//TODO: Set btnRedo.setDisable(bool) based on whether or not there's something to undo			
