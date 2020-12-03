@@ -66,8 +66,8 @@ public class Sudoku extends LatinSquare implements Serializable {
 	 * @param c - Pass in the Cell move
 	 */
 	public void MakeMove(Cell c) {
-		//TODO: Push the 'c' to the Undo Stack
-		//TODO: Clear the Redo Stack
+		stkUndo.push(c);
+		stkRedo.clear();
 	}
 	
 
