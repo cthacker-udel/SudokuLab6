@@ -153,8 +153,7 @@ public class SudokuController   {
 	
 	@FXML
 	private void btnUndo_Click(ActionEvent event) {
-		Cell c = null;
-		//TODO: Undo the last move
+		Cell c = this.game.getSudoku().Undo();
 
 		c.setiCellValue(0);		
 		//	You'll have to 'PaintCell' based on the Cell returned in the mathod above
@@ -169,7 +168,7 @@ public class SudokuController   {
 	 */
 	@FXML
 	private void btnRedo_Click(ActionEvent event) {
-		Cell c = null;
+		Cell c = this.game.getSudoku().Redo();
 		//TODO: Redo the last Undo move
 		PaintCell(c);
 	}	
