@@ -80,13 +80,16 @@ public class Sudoku extends LatinSquare implements Serializable {
 	 * @return - Return the last move
 	 */
 	public Cell Undo() {
-		Cell c = null;
-		if (stkUndo.size() == 0)
+		
+		if (stkUndo.size() == 0) {
 			return null;
-
+		}
+		
 		//TODO: 'Undo' the previous move.  
 		// Pop the value from the 'Undo' stack
+		Cell c = stkUndo.pop();
 		// Push the value to the 'Redo' stack
+		stkRedo.push(c);
 		// Return the Cell that you popped from the Undo Stack
 		
 		return c;
@@ -101,11 +104,12 @@ public class Sudoku extends LatinSquare implements Serializable {
 	 */
 
 	public Cell Redo() {
-		Cell c = null;
+		Cell c = stkRedo.pop();
 		if (stkRedo.size() == 0)
 			return null;
 		//TODO: 'Redo' the previous move.
 		//	Pop the value from the Redo stack.  Set the value in the puzzle,
+		stkUndo.push(c);
 		//	return it.
 		return c;
 	}
