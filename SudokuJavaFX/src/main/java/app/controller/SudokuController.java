@@ -82,7 +82,7 @@ public class SudokuController   {
 	private void SetUndoRedo() {
 		if (this.game != null) {
 			
-			btnUndo.setDisable(true);
+			btnUndo.setDisable(!this.game.getSudoku().bUndo());
 			btnRedo.setDisable(!this.game.getSudoku().bRedo());
 			
 			//TODO: Set btnUndo.setDisable(bool) based on whether or not there's something to undo
@@ -103,8 +103,11 @@ public class SudokuController   {
 
 		GridPane gp = (GridPane) hboxGrid.getChildren().get(0);
 		ObservableList<Node> childs = gp.getChildren();
-
-		int iCurrentCellValue = this.game.getSudoku().getPuzzle()[c.getiRow()][c.getiCol()];
+		
+		// getting cell value of row and column of sudoku
+		//int iCurrentCellValue = this.game.getSudoku().getPuzzle()[c.getiRow()][c.getiCol()];
+		// getting the cell value
+		int iCurrentCellValue = c.getiCellValue();
 
 		for (Object o : childs) {
 			if (o instanceof SudokuCell) {
@@ -154,8 +157,7 @@ public class SudokuController   {
 	@FXML
 	private void btnUndo_Click(ActionEvent event) {
 		Cell c = this.game.getSudoku().Undo();
-
-		c.setiCellValue(0);		
+		c.setiCellValue(0);
 		//	You'll have to 'PaintCell' based on the Cell returned in the mathod above
 		PaintCell(c);
 	}
@@ -170,6 +172,7 @@ public class SudokuController   {
 	private void btnRedo_Click(ActionEvent event) {
 		Cell c = this.game.getSudoku().Redo();
 		//TODO: Redo the last Undo move
+		// set c icellvalue to what was in the redo stack
 		PaintCell(c);
 	}	
 	

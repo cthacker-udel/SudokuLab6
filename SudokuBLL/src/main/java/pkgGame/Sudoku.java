@@ -89,7 +89,8 @@ public class Sudoku extends LatinSquare implements Serializable {
 		// Pop the value from the 'Undo' stack
 		Cell c = stkUndo.pop();
 		// Push the value to the 'Redo' stack
-		stkRedo.push(c);
+		Cell clone = new Cell(c.getiRow(),c.getiCol(),c.getiCellValue());
+		stkRedo.push(clone);
 		// Return the Cell that you popped from the Undo Stack
 		
 		return c;
@@ -104,11 +105,12 @@ public class Sudoku extends LatinSquare implements Serializable {
 	 */
 
 	public Cell Redo() {
-		Cell c = stkRedo.pop();
 		if (stkRedo.size() == 0)
 			return null;
+		Cell c = stkRedo.pop();
 		//TODO: 'Redo' the previous move.
 		//	Pop the value from the Redo stack.  Set the value in the puzzle,
+		this.getPuzzle()[c.getiRow()][c.getiCol()] = c.getiCellValue();
 		stkUndo.push(c);
 		//	return it.
 		return c;
